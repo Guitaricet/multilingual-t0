@@ -59,7 +59,7 @@ import random
 logger = logging.getLogger(__name__)
 
 MT0_LANG_TO_PROBS = {
-        'en': 5.67,
+    'en': 5.67,
     'ru': 3.71,
     'es': 3.09,
     'de': 3.05,
@@ -209,6 +209,9 @@ class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
+    dataset_cache_dir: Optional[str] = field(
+        default='', metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    )
 
     dataset_name: Optional[str] = field(
         default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
@@ -389,7 +392,7 @@ def main():
             dataset_list = list()
             probs_list = list()
             for lang, prob in MT0_LANG_TO_PROBS.items():
-                dataset_list.append(load_dataset(data_args.dataset_name, lang, split="train", streaming=True, cache_dir=model_args.cache_dir))
+                dataset_list.append(load_dataset(data_args.dataset_name, lang, split="train", streaming=True, data_dir=f'{data_args.dataset_cache_dir}/{lang}'))
                 probs_list.append(prob / 100)
                 # probs_list.append(0.5)
             raw_datasets = interleave_datasets(dataset_list, probabilities=probs_list, seed=42)
