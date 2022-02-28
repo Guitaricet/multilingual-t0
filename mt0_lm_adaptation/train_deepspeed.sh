@@ -4,11 +4,11 @@
 #SBATCH --time=13-23:59:00
 
 # Ask for the GPU partition and 1 GPU
-#SBATCH --partition=gpu-he --gres=gpu:2
+#SBATCH --partition=gpu-he --gres=gpu:32
 #SBATCH --constraint=v100
 
 # Default resources are 1 core with 2.8GB of memory.
-#SBATCH --ntasks=2
+#SBATCH --ntasks=128
 
 # Use more memory (10GB) (CPU RAM):
 #SBATCH --mem=200g
@@ -19,10 +19,6 @@
 # Specify an output file
 #SBATCH -o /users/zyong2/data/zyong2/mt0/logs/log-001/mt0_deepspeed_lm_adapt.out
 #SBATCH -e /users/zyong2/data/zyong2/mt0/logs/log-001/mt0_deepspeed_lm_adapt.err
-
-set -a # automatically export all variables
-source ~/.env
-set +a
 
 module load python/3.7.4
 
@@ -51,7 +47,7 @@ MODEL_NAME="google/mt5-xl"
 CACHE_DIR="${CURRENT_DIR}/mt5_xl_cache"  #TODO: change to better cache_dir for saving models if necessary
 TRAIN_BSZ=1
 GRAD_ACC=16
-OUTPUT_DIR="${CURRENT_DIR}/mt5_xl_lm_adaptation"
+OUTPUT_DIR="${CURRENT_DIR}/mt5_xl_lm_adaptation" #TODO: change to better output_dir for saving checkpoints if necessary
 mkdir -p $OUTPUT_DIR
 MAX_STEPS=$((100000*1024/($GPU_NODES*$TRAIN_BSZ*$GRAD_ACC)))
 LOGGING_DIR="${CURRENT_DIR}/mt5_xl_lm_adaptation/runs"
