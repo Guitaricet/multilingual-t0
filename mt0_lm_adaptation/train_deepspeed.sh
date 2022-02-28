@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Request half an hour of runtime:
-#SBATCH --time=1-23:59:00
+#SBATCH --time=13-23:59:00
 
 # Ask for the GPU partition and 1 GPU
 #SBATCH --partition=gpu-he --gres=gpu:2
@@ -40,7 +40,7 @@ pip3 install -r "${CURRENT_DIR}/requirements.txt"
 module load cuda/11.1.1
 module load gcc/10.2
 nvcc --version
-# python3 -m deepspeed.env_report #TODO: uncomment and change time duration
+python3 -m deepspeed.env_report
 
 
 # https://github.com/huggingface/transformers/issues/8771#issuecomment-886233087
@@ -48,7 +48,7 @@ nvcc --version
 GPU_NODES=2 
 DATASET_CACHE_DIR="${CURRENT_DIR}/../mC4_download/data" # TODO: ensure directory path point to $DATA_DIR from prepare_dataset.sh
 MODEL_NAME="google/mt5-xl"
-CACHE_DIR="/users/zyong2/data/zyong2/huggingface/mt5_xl"  #TODO: change to better cache_dir for saving models if necessary
+CACHE_DIR="${CURRENT_DIR}/mt5_xl_cache"  #TODO: change to better cache_dir for saving models if necessary
 TRAIN_BSZ=1
 GRAD_ACC=16
 OUTPUT_DIR="${CURRENT_DIR}/mt5_xl_lm_adaptation"
