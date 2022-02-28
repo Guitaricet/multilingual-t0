@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Request half an hour of runtime:
-#SBATCH --time=14-23:59:00
+#SBATCH --time=1-23:59:00
 
 # Ask for the GPU partition and 1 GPU
 #SBATCH --partition=gpu-he --gres=gpu:2
@@ -25,31 +25,45 @@ source ~/.env
 set +a
 
 module load python/3.7.4
-source $MT0/env_mT0/bin/activate
 
+# set up current directory path
+CURRENT_DIR="/users/zyong2/data/zyong2/mt0/data/external/mt0/mt0_lm_adaptation"
+
+# set up virtual environment and install necessary pip packages
+python3 -m venv "${CURRENT_DIR}/env_lm_adaptation"
+source "${CURRENT_DIR}/env_lm_adaptation/bin/activate"
+pip3 install --upgrade pip
+pip3 install -r "${CURRENT_DIR}/requirements.txt"
+
+
+# load environment for deepspeed
 module load cuda/11.1.1
 module load gcc/10.2
 nvcc --version
-# python3 -m deepspeed.env_report
+# python3 -m deepspeed.env_report #TODO: uncomment and change time duration
+
 
 # https://github.com/huggingface/transformers/issues/8771#issuecomment-886233087
 
-GPU_NODES=2
-DATASET_CACHE_DIR="/users/zyong2/data/zyong2/mt0/data/external/mt0/mC4_download/data"
+GPU_NODES=2 
+DATASET_CACHE_DIR="${CURRENT_DIR}/../mC4_download/data" # TODO: ensure directory path point to $DATA_DIR from prepare_dataset.sh
 MODEL_NAME="google/mt5-xl"
-CACHE_DIR="/users/zyong2/data/zyong2/huggingface/mt5_xl"
+CACHE_DIR="/users/zyong2/data/zyong2/huggingface/mt5_xl"  #TODO: change to better cache_dir for saving models if necessary
 TRAIN_BSZ=1
 GRAD_ACC=16
-OUTPUT_DIR="/users/zyong2/data/zyong2/mt0/data/processed/001/mt5_xl"
+OUTPUT_DIR="${CURRENT_DIR}/mt5_xl_lm_adaptation"
+mkdir -p $OUTPUT_DIR
 MAX_STEPS=$((100000*1024/($GPU_NODES*$TRAIN_BSZ*$GRAD_ACC)))
-LOGGING_DIR="/users/zyong2/data/zyong2/mt0/data/processed/001/runs/mt5_xl_lm_adaptation"
-LOGGING_STEPS=1000
-SAVE_STEPS=1000
-DS_CONFIG="/users/zyong2/data/zyong2/mt0/data/external/mt0/multilingual_t0/ds_config_zero3.json"
+LOGGING_DIR="${CURRENT_DIR}/mt5_xl_lm_adaptation/runs"
+LOGGING_STEPS=5000
+SAVE_STEPS=50000
+DS_CONFIG="${CURRENT_DIR}/ds_config_zero3.json"
 
 deepspeed \
-/users/zyong2/data/zyong2/mt0/data/external/mt0/multilingual_t0/main.py \
+--num_gpus=$GPU_NODES \
+${CURRENT_DIR}/main.py \
 --model_name_or_path $MODEL_NAME \
+--tokenizer_name $MODEL_NAME \
 --dataset_cache_dir $DATASET_CACHE_DIR \
 --cache_dir $CACHE_DIR \
 --dataset_name "mc4" \
